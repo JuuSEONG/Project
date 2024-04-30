@@ -382,4 +382,178 @@ public:
             cout << "\n";
         }
     }
+    //블럭 생성
+    void createBlock() {
+        srand((unsigned int)time(NULL));
+        int select = rand() % 5 + 1; // 1 ~ 5 블럭
+        if (select == 1)blockObject = new Block1(); //1번 블럭 생성
+        else if (select == 2)blockObject = new Block2();    //2번 블럭 생성
+        else if (select == 3)blockObject = new Block3();    //3번 블럭 생성
+        else if (select == 4)blockObject = new Block4();    //4번 블럭 생성
+        else if (select == 5)blockObject = new Block5();    //5번 블럭 생성
+        for (int i = 0; i < 4; i++) {
+            for (int j = 0; j < 4; j++) {
+                int Y = j + blockObject->getY();
+                int X = i + blockObject->getX();
+                table[Y][X] = blockObject->getShape(blockObject->getRotationCount(), i, j);
+                //블럭 개체를 테이블에 업데이트
+            }
+        }
+    }
+    //블럭 이동
+    void MoveBlock(int key) {
+        Block backupBlock;
+        vector<vector<int> > backupTable;
+        backup::updateBlock(blockObject, backupBlock);
+        backup::updateTable(table, backupTable);
+        //테이블에서 블럭 객체 지우기
+        for (int i = 0; i < 4; i++) {
+            for (int j = 0; j < 4; j++) {
+                int Y = j + blockObject->getY();
+                int X = i + blockObject->getX();
+                if (table[Y][X] == 2) { //만약 블러이면
+                    table[Y][X] = 0;    //태이블에서 지운다
+                }
+            }
+        }
+        //블럭 이동
+        if (key == DOWN) blockObject->down();   //만약 인자로 들어온 키가 아랫 방향이면 블럭을 아래로 이동
+        else if (key == LEFT) blockObject->left();  //만약 인자로 들어온 키가 왼쪽 방향이면 블럭을 왼쪽으로 이동
+        else if (key == RIGHT) blockObject->right();    //만약 인자로 들어온 키가 오른쪽 방향이면 블럭을 오른쪽으로 이동
+        //이동한 블럭 상태를 테이블에 갱신 or 취소
+        for (int i = 0; i < 4; i++) {
+            for (int j = 0; j < 4; j++) {
+                int Y = j + blockObject->getY();
+                int X = i + blockObject->getX();
+                int blockValue = blockObject->getShape(blockObject->getRotationCount(), i, j);  //블럭 배열값 없기
+                if (blockValue != 2) continue;  //블럭이 아니면 무시 (블럭 = 2)
+                if (table[Y][X] == 0) { //빈공간이면
+                    table[Y][X] = blockValue;   //블럭을 이동시킴
+                }
+                else if (table[Y][X] == 1) {    //블럭이 양 옆 벽면에 닿으면
+                    copy(backupTable.begin(), backupTable.end(), table.begin());    //테이블 백업
+                    blockObject->setX(backupBlock.getX());  //블럭 x 좌표 백업
+                    blockObject->setY(backupBlock.getY());  //블럭 y 좌표 백업
+                    return; //함수 종료
+                }
+                else if (table[Y][X] == 3) {    //이미 쌓여진 블럭과 접촉하면
+                    copy(backupTable.begin(), backupTable.end(), table.begin());    //테이블 백업
+                    blockObject->setX(backupBlock.getX());  //블럭 x 좌표 백업
+                    blockObject->setY(backupBlock.getY());  //블럭 y 좌표 백업
+                    if (key == DOWN) {  //만약 아랫 방향일 경우
+                        BuildBlock();//블럭을 쌓고
+                        createBlock();  //새로운 블럭을 만듦
+                    }
+                    return;
+                }
+                else if (table[Y][X] == 4) {    //만약에 맨 밑바닥에 접촉했으면
+                    copy(backupTable.begin(), backupTable.end(), table.begin());    //테이블 백업
+                    blockObject->setX(backupBlock.getX());  //블럭 x 좌표 백업
+                    blockObject->setY(backupBlock.getY());  //블럭 y 좌표 백업
+                    if (key == DOWN) {  //만약 아랫 방향일 경우
+                        BuildBlock();   //블럭을 쌓고 
+                        createBlock();  //새로운 블럭을 만듦
+                    }
+                    return; //함수 종료
+                }
+            }
+        }
+    }
+    //블럭 회전
+    void RotateBlock() {
+        Block backupBlock;
+        vector<vector<int> > backupTable;
+        backup::updateBlock(blockObject, backupBlock);
+        backup::updateTable(table, backupTable);
+        //테이블에서 블럭 객체 지우기
+        for (int i = 0; i < 4; i++) {
+            for (int j = 0; j < 4; j++) {
+                int Y = j + blockObject->getY();
+                int X = i + blockObject->getX();
+                if (table[Y][X] == 2) { //만약 블럭이면
+                    table[Y][X] = 0;   //테이블에서 지운다
+                }
+            }
+        }
+        //블럭 회전
+        blockObject->rotate();  //블럭을 회전
+        for (int i = 0; i < 4; i++) {
+            for (int j = 0; j < 4; j++) {
+                int Y = j + blockObject->getY();
+                int X = i + blockObject->getX();
+                int blockValue = blockObject->getShape(blockObject->getRotationCount(), i, j);  //블럭 배열
+                if (blockValue != 2) continue;  //블럭이 아니면 무시 (블럭 = 2)
+                if (table[Y][X] == 0) { //빈공간인 겨웅에 이동한 블럭 정보를 테이블에 갱신
+                    table[Y][X] = blockObject->getShape(blockObject->getRotationCount(), i, j);
+                }
+                else if (table[Y][X] == 1 || table[Y][X] == 3 || table[Y][X]) { //블럭&블럭, 블럭&벽
+                    copy(backupTable.begin(), backupTable.end(), table.begin());
+                    blockObject->setRotationCount(backupBlock.getRotationCount());  //회전하기 전 상태로 백업
+                    return; //업데이트 취소
+                }
+            }
+        }
+    }
+    //블럭을 테이블에 쌓기
+    void BuildBlock() {
+        for (int i = 0; i < 4; i++) {
+            for (int j = 0; j < 4; j++) {
+                int Y = j + blockObject->getY();
+                int X = i + blockObject->getX();
+                int blockValue = blockObject->getShape(blockObject->getRotationCount(), i, j);
+                if (blockValue != 2) continue;
+                table[Y][X] = 3;
+            }
+        }
+    }
 };
+//게임 시작 클래스
+class GamePlay {
+private:
+    GameTable* gt;
+public:
+    GamePlay() {
+        gt = new GameTable(TABLE_X, TABLE_Y);   //게임 판 그리기 객체 생성
+        gt->createBlock();  //초기 블럭 생성
+        gt->DrawGameTable();    //게임판을 그린다
+        while (true) {  //방향키 입력 이벤트
+            int nSelect;
+            if (_kbhit()) {
+                nSelect = _getch();
+                if (nSelect == 224) {
+                    nSelect = _getch();
+                    switch (nSelect) {
+                    case UP:    //위 방향키 입력 시
+                        gt->RotateBlock();  //블럭 90도 회전
+                        break;
+                    case DOWN:  //아래 방향키 입력 시
+                        gt->MoveBlock(DOWN);    //블럭 한 칸 아래 이동
+                        break;
+                    case LEFT:  //왼쪽 방향키 입력시
+                        gt->MoveBlock(LEFT);
+                        break;
+                    case RIGHT:
+                        gt->MoveBlock(RIGHT);
+                        break;
+                    default:
+                        break;
+                    }
+                }
+            }
+            gotoxy(0, 0);   //system("cls") 안쓰고 (0, 0)으로 커서 이동 후
+            gt->DrawGameTable();    //다시 그리기
+        }
+    }
+    ~GamePlay() {   //게임 종료 이벤트
+        delete gt;
+    }
+};
+int main(void) {
+    CursorView(false);  //콘솔 화면 커서 제거
+    system("mode con cols=100 lines=40 | title 테트리스 게임 | 코드 치기 너무 힘들었다"); //콘솔창 크기 및 제목 설정
+    GameTable gt(TABLE_X, TABLE_Y);
+    MainMenu();
+    GamePlay();
+    getchar();
+    return 0;
+}
