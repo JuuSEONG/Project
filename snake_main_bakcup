@@ -1,3 +1,4 @@
+#pragma once
 #include <SFML/Graphics.hpp>
 #include <deque>
 
@@ -85,6 +86,8 @@ public:
     Sprite gameOverSprite;
     Texture restartTexture;
     Sprite restartSprite;
+    Texture backgroundTexture;
+    Sprite backgroundSprite;
 
     Game() : window(VideoMode(WIDTH, HEIGHT), "Snake Game"), snake(COLS / 2, ROWS / 2), score(0), gameState(RUNNING) {
         window.setFramerateLimit(10);
@@ -104,8 +107,15 @@ public:
             // handle error
         }
         restartSprite.setTexture(restartTexture);
-        restartSprite.setPosition(WIDTH / 2 - restartSprite.getGlobalBounds().width / 2, HEIGHT / 2);
+        restartSprite.setPosition(440,300);
         restartSprite.setScale(2, 2);
+
+        if (!backgroundTexture.loadFromFile("resources/back.png")) {
+            // handle error
+        }
+        backgroundSprite.setTexture(backgroundTexture);
+        backgroundSprite.setPosition(300, 300);
+        backgroundSprite.setScale(2, 2);
     }
 
     void spawnFood() {
@@ -173,6 +183,11 @@ public:
     void render() {
         window.clear(Color::White); // 배경을 흰색으로 설정
 
+        // Draw background
+        if (gameState == GAME_OVER) {
+            window.draw(backgroundSprite);
+        }
+
         // Draw snake
         for (const auto& segment : snake.body) {
             RectangleShape rectangle;
@@ -194,8 +209,8 @@ public:
             window.draw(scoreText);
         }
 
+        // Draw game over sprite and restart sprite
         if (gameState == GAME_OVER) {
-            // Draw game over sprite and restart sprite
             window.draw(gameOverSprite);
             window.draw(restartSprite);
         }
