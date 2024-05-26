@@ -24,6 +24,7 @@ Texture D_texture;
 Texture D_End;
 Texture D_Cactus;
 Texture D_Restart;
+Texture D_back;
 
 void restartGame(Sprite& dino, Sprite& cactus) {
     game = true;
@@ -40,7 +41,7 @@ void restartGame(Sprite& dino, Sprite& cactus) {
 }
 
 int DinoGame() {
-    RenderWindow window(VideoMode(1200, 400), "Dino");
+    RenderWindow window(VideoMode(1200, 400), "Dino Game");
     window.setFramerateLimit(60);
 
     Font font;
@@ -54,12 +55,14 @@ int DinoGame() {
     D_End.loadFromFile("resources/gameover.png");
     D_Cactus.loadFromFile("resources/cactus.png");
     D_Restart.loadFromFile("resources/restart.png");
+    D_back.loadFromFile("resources/back.png");
 
     Sprite dino(DinoT, { 0,0,44,47 });
     Sprite background(D_texture, { 2,58,600,10 });
     Sprite cactus(D_Cactus);
     Sprite end(D_End);
     Sprite restart(D_Restart);
+    Sprite back(D_back);
 
     dino.setScale(3, 3);
     dino.setPosition(50, 230);
@@ -69,8 +72,10 @@ int DinoGame() {
     cactus.setPosition(-50, 250);
     end.setPosition(315, 150);
     end.setScale(3, 3);
-    restart.setPosition(560, 220);
+    restart.setPosition(620, 220);
     restart.setScale(3, 3);
+    back.setPosition(460, 220);
+    back.setScale(3, 3);
 
     Text scoreText;
     scoreText.setFont(font);
